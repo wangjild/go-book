@@ -9,7 +9,7 @@
   - 2.5. [go_bootstrap命令]
  
 * 3.Golang程序文件分析
-  - 3.1. [二进制文件分析] (./ch03/3.1.binary.md)
-  - 3.2. [Go程序入口]
-  - 
+  - 3.1. [Go程序编译过程] (./ch03/1/compile.md)
+  - 3.2. [Go二进制文件解析] (./ch03/2/binary.md)
+  
 * 4.最最重要的! runtime包

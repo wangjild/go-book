@@ -34,7 +34,6 @@ func main() {
 	$GOROOT/pkg/tool/darwin_amd64/compile \
 		-o $WORK/runtime.a $WORK -p runtime \
 		-D $GOROOT/src/runtime \
-		-I $WORK -pack -asmhdr \
 		$WORK/runtime/_obj/go_asm.h \
 		./alg.go ./arch1_amd64.go ./arch_amd64.go \
 		./atomic_amd64x.go ./cgo.go ./netpoll_epoll.go ./runtime.go ……
@@ -45,17 +44,26 @@ func main() {
 		-I $GOROOT/pkg/include \
 		-D GOOS_linux -D GOARCH_amd64 ./asm.s
 		
-	￥GOROOT/pkg/tool/darwin_amd64/asm \
+	$GOROOT/pkg/tool/darwin_amd64/asm \
 		-o $WORK/runtime/_obj/rt0_linux_amd64.o \
-		-I $GOROOT/go/pkg/include \
 		-D GOOS_linux -D GOARCH_amd64 ./rt0_linux_amd64.s
 	
 	# 将obj中间文件打包成.a静态文件
 	pack r $WORK/runtime.a $WORK/runtime/_obj/asm.o
+	
+	# 编译main文件
+	$GOROOT/pkg/tool/darwin_amd64/compile -o \
+		$GOPATH/zero.a -p main -complete -pack ./zero.go
 	
 	# 链接器将中间文件和静态库文件链接成可执行文件
 	pkg/tool/darwin_amd64/link -o zero -L $WORK -extld=clang \
 		-buildmode=exe ch03/zero.a
 		
 
-在上面的例子中，首先被编译的是runtime包。
+在上面的例子中，首先被编译的是runtime包。根据当前编译的平台，选择runtime包中对应的文件进行编译。由于go tool compile 支持直接将源码文件编译成静态链接文件，上面第一步编译后就直接生成了 runtime.a 包
+
+因为runtime包中的源文件，有的是采用汇编语言编写的，所以还需要调用汇编编译器来编译。编译生成目标文件(obj)后，将go源码直接编译而来的runtime.a和这些目标文件重新打包，生成最终的runtime.a静态链接文件
+
+接下来编译main文件，也是直接将源码文件直接编译打包成静态库。
+
+最后一步，用链接器链接静态文件，生成可执行文件。
